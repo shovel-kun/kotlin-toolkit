@@ -60,6 +60,7 @@ public class EpubNavigatorFactory(
         initialPreferences: EpubPreferences = EpubPreferences(),
         listener: EpubNavigatorFragment.Listener? = null,
         paginationListener: EpubNavigatorFragment.PaginationListener? = null,
+        messageListener: EpubNavigatorFragment.MessageListener? = null,
         configuration: EpubNavigatorFragment.Configuration = EpubNavigatorFragment.Configuration(),
     ): FragmentFactory = org.readium.r2.navigator.util.createFragmentFactory {
         EpubNavigatorFragment(
@@ -69,6 +70,7 @@ public class EpubNavigatorFactory(
             initialPreferences = initialPreferences,
             listener = listener,
             paginationListener = paginationListener,
+            messageListener = messageListener,
             epubLayout = layout,
             defaults = this.configuration.defaults,
             configuration = configuration

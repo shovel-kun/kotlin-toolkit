@@ -23,6 +23,8 @@ import androidx.fragment.app.commitNow
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.readium.r2.navigator.DecorableNavigator
 import org.readium.r2.navigator.Decoration
@@ -38,6 +40,7 @@ import org.readium.r2.testapp.LITERATA
 import org.readium.r2.testapp.R
 import org.readium.r2.testapp.reader.preferences.UserPreferencesViewModel
 import org.readium.r2.testapp.search.SearchFragment
+import timber.log.Timber
 
 @OptIn(ExperimentalReadiumApi::class)
 class EpubReaderFragment : VisualReaderFragment() {
@@ -69,6 +72,34 @@ class EpubReaderFragment : VisualReaderFragment() {
                 initialLocator = readerData.initialLocation,
                 initialPreferences = readerData.preferencesManager.preferences.value,
                 listener = model,
+                paginationListener = object : EpubNavigatorFragment.PaginationListener {
+//                    override fun onPageLoaded() {
+//                        CoroutineScope(Dispatchers.Main).launch {
+//                            navigator.evaluateJavascript(
+//                                """
+//                                    (function() {
+//                                       document.documentElement.style.setProperty('--RS__backgroundColor', 'blue');
+//                                    })();
+//                                """.trimIndent()
+//                            )
+//                        }
+//                    }
+
+                    override fun onResourceLoaded(): String? {
+                        val script =
+                                """
+                                    (function() {
+                                       window.ReadiumWebView.postMessage("Hello from Kotlin!");
+                                    })();
+                                """.trimIndent()
+                        return script
+                    }
+                },
+                messageListener = object : EpubNavigatorFragment.MessageListener {
+                        override fun onMessage(message: String) {
+                            Timber.d("Message received: $message")
+                        }
+                    },
                 configuration = EpubNavigatorFragment.Configuration {
                     // To customize the text selection menu.
                     selectionActionModeCallback = customSelectionActionModeCallback

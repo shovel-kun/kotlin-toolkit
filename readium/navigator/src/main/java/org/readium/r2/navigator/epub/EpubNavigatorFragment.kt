@@ -116,6 +116,7 @@ public class EpubNavigatorFragment internal constructor(
     private val initialPreferences: EpubPreferences,
     internal val listener: Listener?,
     internal val paginationListener: PaginationListener?,
+    internal val messageListener: MessageListener?,
     epubLayout: EpubLayout,
     private val defaults: EpubDefaults,
     configuration: Configuration,
@@ -261,6 +262,11 @@ public class EpubNavigatorFragment internal constructor(
     public interface PaginationListener {
         public fun onPageChanged(pageIndex: Int, totalPages: Int, locator: Locator) {}
         public fun onPageLoaded() {}
+        public fun onResourceLoaded(): String? = null
+    }
+
+    public interface MessageListener {
+        public fun onMessage(message: String) {}
     }
 
     public interface Listener : OverflowableNavigator.Listener, HyperlinkNavigator.Listener
@@ -763,6 +769,7 @@ public class EpubNavigatorFragment internal constructor(
 
         override fun onResourceLoaded(webView: R2BasicWebView, link: Link) {
             run(viewModel.onResourceLoaded(webView, link))
+            paginationListener?.onResourceLoaded()?.let { run(viewModel.onResourceLoadedInjected(webView, it)) }
         }
 
         override fun onPageLoaded(webView: R2BasicWebView, link: Link) {
@@ -1114,6 +1121,7 @@ public class EpubNavigatorFragment internal constructor(
                 initialPreferences = EpubPreferences(),
                 listener = null,
                 paginationListener = null,
+                messageListener = null,
                 epubLayout = EpubLayout.REFLOWABLE,
                 defaults = EpubDefaults(),
                 configuration = Configuration()

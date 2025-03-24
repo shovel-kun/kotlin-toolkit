@@ -164,6 +164,10 @@ internal class EpubNavigatorViewModel(
         return RunScriptCommand(script, scope = RunScriptCommand.Scope.WebView(webView))
     }
 
+    fun onResourceLoadedInjected(webView: R2BasicWebView, script: String): RunScriptCommand {
+        return RunScriptCommand(script, scope = RunScriptCommand.Scope.WebView(webView))
+    }
+
     // Serving resources
 
     val baseUrl: AbsoluteUrl =

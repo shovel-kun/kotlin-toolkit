@@ -158,6 +158,13 @@ internal class R2EpubPageFragment : Fragment() {
                 }
             }
         }
+        navigator?.messageListener?.let { listener ->
+            webView.messageListener = object : R2BasicWebView.MessageListener {
+                override fun onMessage(message: String) {
+                    listener.onMessage(message)
+                }
+            }
+        }
 
         webView.settings.javaScriptEnabled = true
         webView.isVerticalScrollBarEnabled = false

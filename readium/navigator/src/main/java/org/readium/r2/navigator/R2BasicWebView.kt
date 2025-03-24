@@ -12,14 +12,20 @@ import android.content.Context
 import android.graphics.PointF
 import android.graphics.Rect
 import android.graphics.RectF
+import android.net.Uri
 import android.os.Build
 import android.util.AttributeSet
 import android.view.*
+import android.webkit.JavascriptInterface
 import android.webkit.URLUtil
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import androidx.annotation.RequiresApi
+import androidx.webkit.JavaScriptReplyProxy
+import androidx.webkit.WebMessageCompat
+import androidx.webkit.WebViewCompat
+import androidx.webkit.WebViewFeature
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlinx.coroutines.CoroutineScope
@@ -53,6 +59,9 @@ import timber.log.Timber
 @OptIn(ExperimentalReadiumApi::class)
 internal open class R2BasicWebView(context: Context, attrs: AttributeSet) : WebView(context, attrs) {
 
+    interface MessageListener {
+        fun onMessage(message: String)
+    }
     interface Listener {
         val readingProgression: ReadingProgression
 
@@ -107,6 +116,18 @@ internal open class R2BasicWebView(context: Context, attrs: AttributeSet) : WebV
     }
 
     var listener: Listener? = null
+    var messageListener: MessageListener? = null
+        set(value) {
+            if (field == value) {
+                return
+            }
+
+            field = value
+
+            if (value != null) {
+                createR2WebViewBridge(this)
+            }
+        }
 
     var resourceUrl: AbsoluteUrl? = null
 
@@ -576,6 +597,78 @@ internal open class R2BasicWebView(context: Context, attrs: AttributeSet) : WebV
         }
 
         return listener?.shouldInterceptRequest(webView, request)
+    }
+
+    var fallbackBridge: R2WebViewBridge? = null
+    var bridgeListener: WebViewCompat.WebMessageListener? = null
+
+    protected fun createR2WebViewBridge(webView: R2BasicWebView) {
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
+            if (bridgeListener == null) {
+                bridgeListener = object : WebViewCompat.WebMessageListener {
+                    override fun onPostMessage(
+                        view: WebView,
+                        message: WebMessageCompat,
+                        sourceOrigin: Uri,
+                        isMainFrame: Boolean,
+                        replyProxy: JavaScriptReplyProxy
+                    ) {
+                        messageListener?.onMessage(message.data.toString())
+                    }
+                }
+                WebViewCompat.addWebMessageListener(
+                    webView,
+                    JAVASCRIPT_INTERFACE,
+                    setOf("*"),
+                    bridgeListener!!
+                )
+            }
+        } else {
+            if (fallbackBridge == null) {
+                fallbackBridge = R2WebViewBridge(webView)
+                addJavascriptInterface(fallbackBridge!!, JAVASCRIPT_INTERFACE)
+            }
+        }
+        injectJavascriptObject()
+    }
+
+    private fun injectJavascriptObject() {
+        if (settings.javaScriptEnabled) {
+            val js = """
+                (function(){
+                    window.$JAVASCRIPT_INTERFACE = window.$JAVASCRIPT_INTERFACE || {};
+                    window.$JAVASCRIPT_INTERFACE.injectedObjectJson = function () { return ${if (injectedJavaScriptObject == null) "null" else "`$injectedJavaScriptObject`"}; };
+                })();
+            """.trimIndent()
+            Timber.d("Injecting JS: $js")
+            evaluateJavascriptWithFallback(js)
+        }
+    }
+
+    protected fun evaluateJavascriptWithFallback(script: String) {
+        evaluateJavascript(script, null)
+    }
+
+    var injectedJavaScriptObject: String? = null
+
+    companion object {
+        const val JAVASCRIPT_INTERFACE = "ReadiumWebView"
+    }
+
+    internal inner class R2WebViewBridge(private val mWebView: R2BasicWebView) {
+
+        /**
+         * This method is called whenever JavaScript running within the web view calls:
+         * - window.[JAVASCRIPT_INTERFACE].postMessage
+         */
+        @JavascriptInterface
+        fun postMessage(message: String) {
+            if (mWebView.bridgeListener != null) {
+                messageListener?.onMessage(message)
+            } else {
+                Timber.w("ReactNativeWebView.postMessage method was called but messaging is disabled. Pass an onMessage handler to the WebView.")
+            }
+        }
     }
 
     // Text selection ActionMode overrides
