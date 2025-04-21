@@ -25,7 +25,7 @@ android {
 dependencies {
     api(project(":readium:readium-shared"))
 
-    implementation(files("libs/PhotoView-2.3.0.jar"))
+    implementation(libs.photoview)
 
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.browser)

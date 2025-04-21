@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.maven
+
 /*
  * Copyright 2021 Readium Foundation. All rights reserved.
  * Use of this source code is governed by the BSD-style license
@@ -12,6 +14,7 @@ dependencyResolutionManagement {
         mavenCentral()
         maven(url = "https://s3.amazonaws.com/repo.commonsware.com")
         maven(url = "https://customers.pspdfkit.com/maven")
+        maven(url = "https://jitpack.io")
     }
 }
 
