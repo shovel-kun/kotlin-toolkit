@@ -166,6 +166,8 @@ internal class R2EpubPageFragment : Fragment() {
             }
         }
 
+        webView.disablePageTurnsWhileScrolling =
+            navigator?.config?.disablePageTurnsWhileScrolling ?: false
         webView.settings.javaScriptEnabled = true
         webView.isVerticalScrollBarEnabled = false
         webView.isHorizontalScrollBarEnabled = false
