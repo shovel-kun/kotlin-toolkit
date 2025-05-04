@@ -180,9 +180,6 @@ internal class EpubNavigatorViewModel(
             add(RunScriptCommand(script, scope = scope))
         }
 
-        return RunScriptCommand(script, scope = RunScriptCommand.Scope.WebView(webView))
-    }
-
     fun onResourceLoadedInjected(webView: R2BasicWebView, script: String): RunScriptCommand {
         return RunScriptCommand(script, scope = RunScriptCommand.Scope.WebView(webView))
     }
