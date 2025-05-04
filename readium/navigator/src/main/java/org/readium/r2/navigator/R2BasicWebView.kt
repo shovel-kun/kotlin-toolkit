@@ -442,7 +442,8 @@ internal open class R2BasicWebView(context: Context, attrs: AttributeSet) : WebV
 
     @android.webkit.JavascriptInterface
     fun onSelectionStart() {
-        isSelecting = true
+        // This prevents webview from detecting gestures when selection is active.
+        // isSelecting = true
     }
 
     @android.webkit.JavascriptInterface
