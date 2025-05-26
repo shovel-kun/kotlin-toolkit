@@ -709,7 +709,6 @@ internal class R2WebView(context: Context, attrs: AttributeSet) : R2BasicWebView
                 mLastMotionX = mInitialMotionX
                 mInitialMotionY = ev.y
                 mInitialOverscroll = getOverscrollMode()
-//                Timber.v("isOverscrollHorizontal: $mInitialOverscroll")
                 mActivePointerId = ev.getPointerId(0)
             }
             MotionEvent.ACTION_MOVE -> {
@@ -754,8 +753,7 @@ internal class R2WebView(context: Context, attrs: AttributeSet) : R2BasicWebView
                                 } else if (mInitialMotionX > x) {
                                     scrollRight(animated = true)
                                 }
-                            }
-                            else if (mInitialMotionX < x && mInitialOverscroll == OverscrollMode.LEFT) {
+                            } else if (mInitialMotionX < x && mInitialOverscroll == OverscrollMode.LEFT) {
                                 scrollLeft(animated = true)
                             } else if (mInitialMotionX > x && mInitialOverscroll == OverscrollMode.RIGHT) {
                                 scrollRight(animated = true)
@@ -1066,8 +1064,6 @@ internal class R2WebView(context: Context, attrs: AttributeSet) : R2BasicWebView
 
     private fun getOverscrollMode(): OverscrollMode {
         val clientWidth = getClientWidth() ?: return OverscrollMode.NONE
-//        Timber.v("scrollX = $scrollX")
-//        Timber.v("computerHorizontalScrollRange() = ${computeHorizontalScrollRange() - clientWidth}")
         val right = scrollX >= computeHorizontalScrollRange() - clientWidth
         val left = scrollX <= 0
         if (left && right) {
@@ -1088,7 +1084,10 @@ internal class R2WebView(context: Context, attrs: AttributeSet) : R2BasicWebView
             ?: 1
 
     enum class OverscrollMode {
-        NONE, LEFT, RIGHT, BOTH
+        NONE,
+        LEFT,
+        RIGHT,
+        BOTH,
     }
 
     /**
